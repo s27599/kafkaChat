@@ -67,7 +67,7 @@ class MessageConsumer{
                         ConsumerConfig.GROUP_ID_CONFIG,id,
                         ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName(),
                         ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName(),
-                        ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"
+                        ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest"
                 )
         );
         kafkaConsumer.subscribe(Collections.singletonList(topic));
@@ -76,5 +76,12 @@ class MessageConsumer{
             System.out.println(id+ " "+ record.value());
         });
 
+
     }
+    public void delConsumer() {
+        kafkaConsumer.unsubscribe();
+        kafkaConsumer.close();
+
+    }
+
 }

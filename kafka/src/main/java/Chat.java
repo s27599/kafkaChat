@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Chat extends JFrame {
     private JTextArea chatViev;
@@ -18,6 +19,7 @@ public class Chat extends JFrame {
     private JTextField loginField;
     private JList users;
     private JTextField TopicField;
+    private JButton Logout;
 
     private JScrollPane chatScroll;
 
@@ -25,12 +27,12 @@ public class Chat extends JFrame {
 
     private String topic;
     private String id;
+    private boolean logged;
+    Future<?> submit;
 
     public Chat() {
 
         Chat.this.sendButton.setEnabled(false);
-
-
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.add(mainPanel);
         this.setVisible(true);
@@ -57,15 +59,33 @@ public class Chat extends JFrame {
                     Chat.this.setTitle(id);
                     Chat.this.loginButton.setEnabled(false);
                     Chat.this.sendButton.setEnabled(true);
+                    Chat.this.Logout.setEnabled(true);
+                    logged = true;
                     messageConsumer = new MessageConsumer(topic, id);
-                    Executors.newSingleThreadExecutor().submit(() -> {
-                        while (true) {
+                    submit = Executors.newSingleThreadExecutor().submit(() -> {
+                        while (logged) {
                             messageConsumer.kafkaConsumer.poll(Duration.of(1, ChronoUnit.SECONDS)).forEach((message) -> {
                                 chatViev.append(message.value() + System.lineSeparator());
                             });
                         }
                     });
                 }
+
+            }
+        });
+        Logout.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Chat.this.setTitle("");
+                Chat.this.loginButton.setEnabled(true);
+                Chat.this.Logout.setEnabled(false);
+                Chat.this.sendButton.setEnabled(false);
+                Chat.this.chatViev.setText("");
+                Chat.this.TopicField.setText(null);
+                Chat.this.loginField.setText(null);
+                logged = false;
+                messageConsumer.delConsumer();
+                messageConsumer = null;
 
             }
         });
